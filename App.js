@@ -11,11 +11,14 @@ import Login from './src/screens/public/Login';
 import Signup from './src/screens/public/Signup';
 import { AppContext } from './src/context/AppContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import jwtDecode from 'jwt-decode';
+import AgencyHome from './src/screens/private/AgencyHome';
+import Tickets from './src/screens/private/Tickets';
 
 const Stack = createNativeStackNavigator();
 
 function App(){
-  const [loggedIn, setLoggedIn] = useState(false);
+  const [loggedIn, setLoggedIn] = useState('');
 
   useEffect(() => {
     checkLoggedIn();
@@ -24,9 +27,10 @@ function App(){
   const checkLoggedIn = async () => {
     const token = await AsyncStorage.getItem('token');
     if(token){
-      setLoggedIn(true);
+      const userType = jwtDecode(token).user.type;
+      setLoggedIn(userType);
     }else{
-      setLoggedIn(false);
+      setLoggedIn('not-logged-in');
     }
   }
 
@@ -35,12 +39,18 @@ function App(){
       <NavigationContainer>
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <>
-            {loggedIn ? 
+            {loggedIn === 'traveller' ? 
             <>
               <Stack.Screen name='Bottom' navigationKey={loggedIn ? 'user' : 'guest'} component={Tabs} />
               <Stack.Screen name='Agency' component={AgencyList} />
               <Stack.Screen name='Create' component={CreateTicket} />
               <Stack.Screen name='Track' component={Tracker} />
+            </>
+            :
+            loggedIn === 'agency' ?
+            <>
+              <Stack.Screen name='Home' component={AgencyHome} />
+              <Stack.Screen name='Tickets' component={Tickets} />
             </>
             :
             <>
